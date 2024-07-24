@@ -26,19 +26,34 @@ function Chat() {
     }
 
     return (
-        <div>
-            {/* Tengo un problema, los mensajes se estan actualizando cada vez que cambian, la idea es que vaya quedando cierto historial */}
-            <div>
-                {messagesArray.map((message, index) => {
-                    return <p key={index}>{message.isUser? 'User: ': 'Bot: '}{message.text}</p>
-                })}
+        <div className="w-full h-screen flex flex-col">
+            <div className="flex-1 overflow-y-auto p-4 ">
+                {messagesArray.map((message, index) => (
+                    <div 
+                        key={index} 
+                        className={`flex mb-2 p-2  border-b border-gray-500 ${message.isUser ? 'justify-end ' : 'self-start'}`}
+                    >
+                        {message.text}
+                    </div>
+                ))}
             </div>
-            <form>
-                <input value={valueInput} onChange={handleChange} type="text" placeholder="Mensaje a cohere" className="text-zinc-950" />
+            <form className="flex p-4 border-t border-gray-200" onSubmit={click}>
+                <input
+                    value={valueInput}
+                    onChange={handleChange}
+                    type="text"
+                    placeholder="Mensaje a cohere"
+                    className="text-gray-900 w-full p-2 border border-gray-300 rounded-l"
+                />
+                <button
+                    type="submit"
+                    className="bg-blue-500 text-white px-4 py-2 rounded-r"
+                >
+                    Enviar
+                </button>
             </form>
-                <button onClick={click}>Enviar</button>
         </div>
-    )
+    );
 }
 
 export default Chat;

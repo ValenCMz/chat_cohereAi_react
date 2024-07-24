@@ -11,9 +11,7 @@ export function useMessages() {
         if(previousMessage.current === message) return;
 
         const response = await sendChatMessage(message);
-        console.log('responseUseMenssage', response)
         let rta  = response.text;
-        console.log('rta', rta)
         setMessages(rta);
 
         previousMessage.current = message;

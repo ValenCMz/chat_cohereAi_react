@@ -1,10 +1,26 @@
 import { useState, useEffect } from "react";
 import { useMessages } from "../hooks/useMessages";
 
-function Chat() {
+// eslint-disable-next-line react/prop-types
+function Chat({chatId}) {
     const [valueInput, setValueInput] = useState('');
     const {messages, getRta} = useMessages(valueInput)
     const [messagesArray, setMessagesArray] = useState([])
+
+    //Carga los mensajes al localStorage se crea el componente
+    useEffect(() => {
+        const savedMessages = localStorage.getItem(`chat_${chatId}_messages`);
+        if (savedMessages) {
+          setMessagesArray(JSON.parse(savedMessages));
+        } else {
+          setMessagesArray([]);
+        }
+      }, [chatId]);
+
+    //Actualiza el localStorage
+    useEffect(() => {
+        localStorage.setItem(`chat_${chatId}_messages`, JSON.stringify(messagesArray));
+    }, [messagesArray, chatId]);
 
     useEffect(() => {
         if (messages) {
@@ -17,7 +33,7 @@ function Chat() {
         setValueInput(event.target.value);
     }
 
-    const click = (event) => {
+    const handleSubmit = (event) => {
         event.preventDefault();
         if(valueInput === '') return;
         setMessagesArray(prevMenssages => [...prevMenssages, {text: valueInput, isUser: true}]);
@@ -27,6 +43,9 @@ function Chat() {
 
     return (
         <div className="w-full h-screen flex flex-col">
+            <div>
+                <h1>{chatId}</h1>
+            </div>
             <div className="flex-1 overflow-y-auto p-4 ">
                 {messagesArray.map((message, index) => (
                     <div 
@@ -37,7 +56,7 @@ function Chat() {
                     </div>
                 ))}
             </div>
-            <form className="flex p-4 border-t border-gray-200" onSubmit={click}>
+            <form className="flex p-4 border-t border-gray-200" onSubmit={handleSubmit}>
                 <input
                     value={valueInput}
                     onChange={handleChange}

@@ -1,0 +1,6 @@
+.button_history{
+    display: flex;
+    height: 94%;
+    justify-content: center;
+    align-items: end;
+}

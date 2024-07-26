@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useMessages } from "../hooks/useMessages";
 
 // eslint-disable-next-line react/prop-types
-function Chat({chatId}) {
+function Chat({chatId, chatName}) {
     const [valueInput, setValueInput] = useState('');
     const {messages, getRta} = useMessages(valueInput)
     const [messagesArray, setMessagesArray] = useState([])
@@ -43,9 +43,7 @@ function Chat({chatId}) {
 
     return (
         <div className="w-full h-screen flex flex-col">
-            <div>
-                <h1>{chatId}</h1>
-            </div>
+            {chatName ? <div><h1>{chatName}</h1></div> : null}
             <div className="flex-1 overflow-y-auto p-4 ">
                 {messagesArray.map((message, index) => (
                     <div 

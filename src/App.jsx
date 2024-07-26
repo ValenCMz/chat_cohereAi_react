@@ -1,5 +1,5 @@
 import './App.css'
-import { useState, useEffect} from 'react';
+import { useState, useEffect, useRef} from 'react';
 import { nanoid } from 'nanoid';
 
 import Chat from './components/Chat'
@@ -16,16 +16,27 @@ import Chat from './components/Chat'
     3.1 Mostrar mensajes enviados ✅
     3.2 Mostrar mensajes recibidos ✅
 
-    4. Cada boton del historial de chats este ligado a un chat
-    4.1 Navegar por los distintos chats
-    4.2 que persistas la informacion al intercambiar de chats y al cerrar la pagina web
+    4. Cada boton del historial de chats este ligado a un chat✅
+    4.1 Navegar por los distintos chats✅
+    4.2 que persistas la informacion al intercambiar de chats y al cerrar la pagina web✅
+
+    5.Que los chats se guarden cuando refresco la pagina
+    5.1 Eliminar chats
+
+    6.Acomodar el css
+
+    7.Refactor de codigo
+
+    8.Agregar docker y una base de datos para manejar los chats
 
 */
 
 
 
 function App() {
-  const [chats, setChats] = useState([]);
+  const inputRef = useRef(null);
+  /*Voy a usar un map ya que me parece la mejor estructura para tratar esto, ya que gracias a la clave: valor nos permite una busqueda de elementos de complejidad constante */
+  const [chats, setChats] = useState(new Map());
   const [activeChatId, setActiveChatId] = useState(null);
   const [buttonHistory, setButtonHistory] = useState(false)
 
@@ -34,7 +45,11 @@ function App() {
       id: nanoid(),
       name: chatName,
     };
-    setChats((prevChats) => [...prevChats, newChat]);
+    setChats((prevChats) => {
+      const updatedChats = new Map(Array.from(prevChats));
+      updatedChats.set(newChat.id, newChat);
+      return updatedChats;
+    });
     return newChat.id;
   };
 
@@ -56,9 +71,13 @@ function App() {
   }
 
   const initChat = () => {
-    const newChatId = addChatToHistory(`Chat ${chats.length + 1}`);
-    setActiveChatId(newChatId)
-    setButtonHistory(true)
+    const chatName = inputRef.current.value;
+    if(chatName){
+      const newChatId = addChatToHistory(chatName);
+      setActiveChatId(newChatId)
+      setButtonHistory(true)
+    }
+
   }
 
   useEffect(() => {
@@ -68,11 +87,10 @@ function App() {
     <div className='flex h-screen'>
         <div className='history flex-1/4 w-1/4 border-r border-gray-500 '>
           {
-            chats.map((chat) => {
-              console.log(chat.id);
+            Array.from(chats).map(([key, chat]) => {
               return (
-                <div key={chat.id}>
-                  <button className='w-full hover:bg-sky-700' onClick={() => selectChat(chat.id)}>
+                <div key={key}>
+                  <button className='w-full hover:bg-sky-700' onClick={() => selectChat(key)}>
                     {chat.name}
                   </button>
                 </div>
@@ -85,6 +103,11 @@ function App() {
                 <button className='text-sm bg-gray-700 p-2 rounded-md ' onClick={initChat}> 
                   Iniciar Chat 
                 </button>
+                <input type="text" 
+                  placeholder='Nombre del chat' 
+                  className='text-neutral-950 rounded'
+                  ref={inputRef}
+                />
             </div> 
             : null
           }
@@ -95,15 +118,19 @@ function App() {
         <div className='w-full flex justify-center'>
 
         {!buttonHistory ? 
-          <div className='flex items-center'>  
+          <div className='flex flex-col items-center justify-center gap-2'>  
             <button className='text-sm bg-gray-700 p-2 rounded-md ' onClick={initChat}> 
               Iniciar Chat 
             </button>
+            <input type="text" 
+            placeholder='Nombre del chat' 
+            className='text-neutral-950 rounded'
+            ref={inputRef}
+            />
           </div>
           : null
         }
-        
-        {activeChatId ? <Chat chatId={activeChatId}  /> : null}
+        {activeChatId ? <Chat chatId={activeChatId} chatName={activeChatId?chats.get(activeChatId).name:null} /> : null}
           </div>
     </div>   
   )

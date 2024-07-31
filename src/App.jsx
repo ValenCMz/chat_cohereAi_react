@@ -4,41 +4,15 @@ import { nanoid } from 'nanoid';
 
 import Chat from './components/Chat'
 
-
-/*
-  Idea del proyecto:
-    1. Boton para Iniciar un chat ✅
-    2. Chat con un input para escribir mensajes ✅
-    2.1 Boton para enviar mensajes ✅
-    2.2 Mostrar mensajes enviados ✅
-    
-    3. Panel para mostrar el historial de chats ✅
-    3.1 Mostrar mensajes enviados ✅
-    3.2 Mostrar mensajes recibidos ✅
-
-    4. Cada boton del historial de chats este ligado a un chat✅
-    4.1 Navegar por los distintos chats✅
-    4.2 que persistas la informacion al intercambiar de chats y al cerrar la pagina web✅
-
-    5.Que los chats se guarden cuando refresco la pagina
-    5.1 Eliminar chats
-
-    6.Acomodar el css
-
-    7.Refactor de codigo
-
-    8.Agregar docker y una base de datos para manejar los chats
-
-*/
-
-
-
 function App() {
   const inputRef = useRef(null);
   /*Voy a usar un map ya que me parece la mejor estructura para tratar esto, ya que gracias a la clave: valor nos permite una busqueda de elementos de complejidad constante */
   const [chats, setChats] = useState(new Map());
   const [activeChatId, setActiveChatId] = useState(null);
   const [buttonHistory, setButtonHistory] = useState(false)
+
+  //Cuando se crea la variable esta es falsa
+  const [isFirstLoad, setIsFirstLoad] = useState(false);
 
   const addChatToHistory = (chatName) => {
     const newChat = {
@@ -53,17 +27,28 @@ function App() {
     return newChat.id;
   };
 
-  //Cargar los chats desde localStorage cuando carga el componente
+  //Cargar los chats desde sessionStorage cuando carga el componente
   useEffect(() => {
-    const savedChats = localStorage.getItem('chats');
-    if (savedChats) {
-      setChats(JSON.parse(savedChats));
+    const hasVisitedBefore = sessionStorage.getItem('hasVisitedBefore');
+    if (!hasVisitedBefore) {
+      sessionStorage.setItem('hasVisitedBefore', 'true');
+      // Si es la primera vez que se carga la pagina se setea el estado de isFirstLoad en true
+      setIsFirstLoad(true);
+    } else {
+      // Si no es la primera carga se setea el estado de isFirstLoad en false
+      setIsFirstLoad(false);
+
+      const savedChats = sessionStorage.getItem('chats');
+      if (savedChats) {
+        setChats(new Map(JSON.parse(savedChats)));
+      }
     }
+    // console.log('Chats:', sessionStorage);
   }, []);
 
-  //Guardar los cambios en localstorage cuando cambie el estado
+  //Guardar los cambios en sessionStorage cuando cambie el estado
   useEffect(() => {
-    localStorage.setItem('chats', JSON.stringify(chats));
+    sessionStorage.setItem('chats', JSON.stringify(Array.from(chats.entries())));
   }, [chats]);
 
   const selectChat = (chatId) => {
@@ -74,19 +59,40 @@ function App() {
     const chatName = inputRef.current.value;
     if(chatName){
       const newChatId = addChatToHistory(chatName);
-      setActiveChatId(newChatId)
-      setButtonHistory(true)
+      setActiveChatId(newChatId);
+      setButtonHistory(true);
+      setIsFirstLoad(false);
+      inputRef.current.value = '';
     }
 
   }
 
-  useEffect(() => {
-  }, [activeChatId]);
-
+  const getName = (activeChatId) => {
+    const chats = sessionStorage.getItem('chats');
+    // console.log("chats: ", chats)
+    if (chats) {
+      // Parsear el JSON guardado en sessionStorage
+      const chatsArray = JSON.parse(chats);
+      // // console.log("chatsArray: ", chatsArray)
+      // Buscar el chat con el ID proporcionado
+      for (const [key, value] of chatsArray) {
+        // console.log("activeChatId: ", activeChatId)
+        // console.log("key: ", key)
+        if (activeChatId != null && key === activeChatId) {
+          console.log("ENTROOO")
+          return value.name;
+        }
+      }
+      return 'Selecciona un chat';
+    }
+    return 'Selecciona un chat';
+  };
+  
   return (
     <div className='flex h-screen'>
+      {/* {console.log("cambio de estado: ", isFirstLoad)} */}
         <div className='history flex-1/4 w-1/4 border-r border-gray-500 '>
-          {
+          {isFirstLoad == false ?
             Array.from(chats).map(([key, chat]) => {
               return (
                 <div key={key}>
@@ -96,9 +102,10 @@ function App() {
                 </div>
               );
             })
+            :null
           }
 
-          {buttonHistory ?  
+          {isFirstLoad == false ?  
             <div className="button_history">
                 <button className='text-sm bg-gray-700 p-2 rounded-md ' onClick={initChat}> 
                   Iniciar Chat 
@@ -116,22 +123,36 @@ function App() {
 
          
         <div className='w-full flex justify-center'>
+        
+          {/* Si no esta el boton del historial y es la primer carga */}
+          {isFirstLoad && !buttonHistory? 
+            <div className='flex flex-col items-center justify-center gap-2'>  
+              <button className='text-sm bg-gray-700 p-2 rounded-md ' onClick={initChat}> 
+                Iniciar Chat 
+              </button>
+              <input type="text" 
+              placeholder='Nombre del chat' 
+              className='text-neutral-950 rounded'
+              ref={inputRef}
+              />
+            </div>
+            : null
+          }
 
-        {!buttonHistory ? 
-          <div className='flex flex-col items-center justify-center gap-2'>  
-            <button className='text-sm bg-gray-700 p-2 rounded-md ' onClick={initChat}> 
-              Iniciar Chat 
-            </button>
-            <input type="text" 
-            placeholder='Nombre del chat' 
-            className='text-neutral-950 rounded'
-            ref={inputRef}
-            />
-          </div>
+          {/* Si Existe un chat y no es la primer carga */}
+          {/* {console.log(chats)}
+          {console.log("tamaño de size : ",chats.size)}
+          {console.log(activeChatId)} */}
+          {activeChatId || !isFirstLoad ? 
+          <Chat chatId={activeChatId} 
+                chatName={activeChatId && chats.size > 0 ?
+                chats.get(activeChatId).name 
+                : getName(activeChatId)
+                }
+          /> 
           : null
-        }
-        {activeChatId ? <Chat chatId={activeChatId} chatName={activeChatId?chats.get(activeChatId).name:null} /> : null}
-          </div>
+          }
+        </div>
     </div>   
   )
 }

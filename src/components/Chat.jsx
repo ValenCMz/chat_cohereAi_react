@@ -7,9 +7,9 @@ function Chat({chatId, chatName}) {
     const {messages, getRta} = useMessages(valueInput)
     const [messagesArray, setMessagesArray] = useState([])
 
-    //Carga los mensajes al localStorage se crea el componente
+    //Carga los mensajes al sessionStorage se crea el componente
     useEffect(() => {
-        const savedMessages = localStorage.getItem(`chat_${chatId}_messages`);
+        const savedMessages = sessionStorage.getItem(`chat_${chatId}_messages`);
         if (savedMessages) {
           setMessagesArray(JSON.parse(savedMessages));
         } else {
@@ -17,9 +17,9 @@ function Chat({chatId, chatName}) {
         }
       }, [chatId]);
 
-    //Actualiza el localStorage
+    //Actualiza el sessionStorage
     useEffect(() => {
-        localStorage.setItem(`chat_${chatId}_messages`, JSON.stringify(messagesArray));
+        sessionStorage.setItem(`chat_${chatId}_messages`, JSON.stringify(messagesArray));
     }, [messagesArray, chatId]);
 
     useEffect(() => {
@@ -43,6 +43,7 @@ function Chat({chatId, chatName}) {
 
     return (
         <div className="w-full h-screen flex flex-col">
+            {/* {console.log("chatsession: ", sessionStorage)} */}
             {chatName ? <div><h1>{chatName}</h1></div> : null}
             <div className="flex-1 overflow-y-auto p-4 ">
                 {messagesArray.map((message, index) => (

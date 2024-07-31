@@ -43,7 +43,6 @@ function App() {
         setChats(new Map(JSON.parse(savedChats)));
       }
     }
-    // console.log('Chats:', sessionStorage);
   }, []);
 
   //Guardar los cambios en sessionStorage cuando cambie el estado
@@ -64,20 +63,23 @@ function App() {
       setIsFirstLoad(false);
       inputRef.current.value = '';
     }
+  }
 
+  const deleteChat = (chatId) => {
+    setChats((prevChats) => {
+      const updatedChats = new Map(Array.from(prevChats));
+      updatedChats.delete(chatId);
+      return updatedChats;
+    });
   }
 
   const getName = (activeChatId) => {
     const chats = sessionStorage.getItem('chats');
-    // console.log("chats: ", chats)
     if (chats) {
       // Parsear el JSON guardado en sessionStorage
       const chatsArray = JSON.parse(chats);
-      // // console.log("chatsArray: ", chatsArray)
       // Buscar el chat con el ID proporcionado
       for (const [key, value] of chatsArray) {
-        // console.log("activeChatId: ", activeChatId)
-        // console.log("key: ", key)
         if (activeChatId != null && key === activeChatId) {
           console.log("ENTROOO")
           return value.name;
@@ -90,14 +92,16 @@ function App() {
   
   return (
     <div className='flex h-screen'>
-      {/* {console.log("cambio de estado: ", isFirstLoad)} */}
-        <div className='history flex-1/4 w-1/4 border-r border-gray-500 '>
+        <div className='history border-r border-gray-500 '>
           {isFirstLoad == false ?
             Array.from(chats).map(([key, chat]) => {
               return (
-                <div key={key}>
-                  <button className='w-full hover:bg-sky-700' onClick={() => selectChat(key)}>
+                <div key={key} className='flex'>
+                  <button className='w-1/2 hover:bg-sky-700' onClick={() => selectChat(key)}>
                     {chat.name}
+                  </button>
+                  <button className='w-1/2 hover:bg-red-700' onClick={() => deleteChat(key)}>
+                    Eliminar chat
                   </button>
                 </div>
               );
@@ -139,10 +143,6 @@ function App() {
             : null
           }
 
-          {/* Si Existe un chat y no es la primer carga */}
-          {/* {console.log(chats)}
-          {console.log("tamaño de size : ",chats.size)}
-          {console.log(activeChatId)} */}
           {activeChatId || !isFirstLoad ? 
           <Chat chatId={activeChatId} 
                 chatName={activeChatId && chats.size > 0 ?

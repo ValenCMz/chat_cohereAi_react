@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useMessages } from "../hooks/useMessages";
+import IconBotChat from "./IconBotChat";
+import IconUserChat from "./IconUserChat";
 
 // eslint-disable-next-line react/prop-types
 function Chat({chatId, chatName}) {
@@ -43,15 +45,24 @@ function Chat({chatId, chatName}) {
 
     return (
         <div className="w-full h-screen flex flex-col">
-            {/* {console.log("chatsession: ", sessionStorage)} */}
-            {chatName ? <div><h1>{chatName}</h1></div> : null}
+            {chatName ? <div className="text-center mt-2"><h1>{chatName}</h1></div> : null}
             <div className="flex-1 overflow-y-auto p-4 ">
                 {messagesArray.map((message, index) => (
                     <div 
                         key={index} 
                         className={`flex mb-2 p-2  border-b border-gray-500 ${message.isUser ? 'justify-end ' : 'self-start'}`}
                     >
-                        {message.text}
+                        {!message.isUser ? (
+                            <>
+                            <IconBotChat />
+                            <span className="ml-2">{message.text}</span>
+                            </>
+                        ) : (
+                            <>
+                            <span className="mr-2">{message.text}</span>
+                            <IconUserChat />
+                            </>
+                        )}                        
                     </div>
                 ))}
             </div>

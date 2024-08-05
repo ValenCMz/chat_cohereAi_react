@@ -6,7 +6,6 @@ export function useMessages() {
     const previousMessage = useRef()
 
     const getRta = useCallback(async (message) => {
-        console.log('useMessage', message)
 
         if(previousMessage.current === message) return;
 

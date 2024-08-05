@@ -7,8 +7,6 @@ function App() {
   const inputRef = useRef(null);
   const [chats, setChats] = useState(new Map());
   const [activeChatId, setActiveChatId] = useState(null);
-  const [buttonHistory, setButtonHistory] = useState(false);
-  const [isFirstLoad, setIsFirstLoad] = useState(false);
 
   const addChatToHistory = (chatName) => {
     const newChat = { id: nanoid(), name: chatName };
@@ -21,12 +19,7 @@ function App() {
   };
 
   useEffect(() => {
-    const hasVisitedBefore = sessionStorage.getItem('hasVisitedBefore');
-    if (!hasVisitedBefore) {
-      sessionStorage.setItem('hasVisitedBefore', 'true');
-      setIsFirstLoad(true);
-    } else {
-      setIsFirstLoad(false);
+    if (chats.size === 0) {
       const savedChats = sessionStorage.getItem('chats');
       if (savedChats) {
         setChats(new Map(JSON.parse(savedChats)));
@@ -38,7 +31,10 @@ function App() {
     sessionStorage.setItem('chats', JSON.stringify(Array.from(chats.entries())));
   }, [chats]);
 
-  const selectChat = (chatId) => setActiveChatId(chatId);
+  const selectChat = (chatId) => {
+    showHistory();  
+    setActiveChatId(chatId)
+  };
 
   const initChat = (event) => {
     event.preventDefault();
@@ -46,8 +42,6 @@ function App() {
     if (chatName) {
       const newChatId = addChatToHistory(chatName);
       setActiveChatId(newChatId);
-      setButtonHistory(true);
-      setIsFirstLoad(false);
       inputRef.current.value = '';
     }
   };
@@ -56,19 +50,31 @@ function App() {
     setChats((prevChats) => {
       const updatedChats = new Map(Array.from(prevChats));
       updatedChats.delete(chatId);
+  
+      if (updatedChats.size === 0) {
+        showHistory();
+      } else if (activeChatId === chatId) {
+        const firstChatId = updatedChats.keys().next().value;
+        setActiveChatId(firstChatId);
+      }
+  
       return updatedChats;
     });
   };
+  
 
   const getName = (activeChatId) => {
     const chats = sessionStorage.getItem('chats');
     if (chats) {
+      // Parsear el JSON guardado en sessionStorage
       const chatsArray = JSON.parse(chats);
+      // Buscar el chat con el ID proporcionado
       for (const [key, value] of chatsArray) {
         if (activeChatId != null && key === activeChatId) {
           return value.name;
         }
       }
+      return 'Selecciona un chat';
     }
     return 'Selecciona un chat';
   };
@@ -94,12 +100,12 @@ function App() {
           </svg>
         </div>
 
-        {isFirstLoad == false && (
+        {chats.size > 0 && (
           <div className="overflow-y-auto flex-1 mt-16 text-center">
             <h1>Selecciona un chat</h1>
             {Array.from(chats).map(([key, chat]) => (
               <div key={key} className="text-lg border m-4">
-                <button className="hover:bg-sky-700 w-1/2" onClick={() => selectChat(key)}>
+                <button className="hover:bg-sky-700 w-1/2 border-r" onClick={() => selectChat(key)}>
                   {chat.name}
                 </button>
                 <button className="hover:bg-red-700 w-1/2" onClick={() => deleteChat(key)}>
@@ -110,7 +116,7 @@ function App() {
           </div>
         )}
 
-        {isFirstLoad == false && chats.size > 0 && (
+        {chats.size > 0 && (
           <div className="button_history p-4 border-t border-gray-500">
             <form action="" className="flex flex-col gap-2">
               <label htmlFor="">Introduce el nombre del chat</label>
@@ -130,7 +136,7 @@ function App() {
       </div>
 
       <div className="w-full flex justify-center">
-        {(isFirstLoad && !buttonHistory) || chats.size === 0 ? (
+        {chats.size === 0 ? (
           <div className="flex flex-col space-y-80 items-center">
             <h1 className="mt-6 text-xl">Bienvenido a cohere bot</h1>
             <form action="" className="flex flex-col gap-2">
@@ -149,12 +155,13 @@ function App() {
           </div>
         ) : null}
 
-        {(activeChatId || !isFirstLoad) && chats.size > 0 && (
+        {/* Si hay un chat activo o no es la primer carga y existen chats */}
+        {chats.size > 0 ? (
           <Chat
             chatId={activeChatId}
             chatName={activeChatId && chats.size > 0 ? chats.get(activeChatId).name : getName(activeChatId)}
           />
-        )}
+        ) : null }
       </div>
     </div>
   );

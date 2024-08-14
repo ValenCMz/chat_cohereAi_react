@@ -1,28 +1,18 @@
 import './App.css';
-import { useState, useEffect, useRef } from 'react';
-import { nanoid } from 'nanoid';
+import { useEffect, useRef } from 'react';
 import Chat from './components/Chat';
+import { useAppContext } from './context/ChatsContext.jsx';
+import History from './components/History';
 
 function App() {
   const inputRef = useRef(null);
-  const [chats, setChats] = useState(new Map());
-  const [activeChatId, setActiveChatId] = useState(null);
-
-  const addChatToHistory = (chatName) => {
-    const newChat = { id: nanoid(), name: chatName };
-    setChats((prevChats) => {
-      const updatedChats = new Map(Array.from(prevChats));
-      updatedChats.set(newChat.id, newChat);
-      return updatedChats;
-    });
-    return newChat.id;
-  };
+  const { chats, activeChatId, initChat, showHistory, updateChats } = useAppContext();
 
   useEffect(() => {
     if (chats.size === 0) {
       const savedChats = sessionStorage.getItem('chats');
       if (savedChats) {
-        setChats(new Map(JSON.parse(savedChats)));
+        updateChats(new Map(JSON.parse(savedChats)));
       }
     }
   }, []);
@@ -31,44 +21,10 @@ function App() {
     sessionStorage.setItem('chats', JSON.stringify(Array.from(chats.entries())));
   }, [chats]);
 
-  const selectChat = (chatId) => {
-    showHistory();  
-    setActiveChatId(chatId)
-  };
-
-  const initChat = (event) => {
-    event.preventDefault();
-    const chatName = inputRef.current.value;
-    if (chatName) {
-      const newChatId = addChatToHistory(chatName);
-      setActiveChatId(newChatId);
-      inputRef.current.value = '';
-    }
-  };
-
-  const deleteChat = (chatId) => {
-    setChats((prevChats) => {
-      const updatedChats = new Map(Array.from(prevChats));
-      updatedChats.delete(chatId);
-  
-      if (updatedChats.size === 0) {
-        showHistory();
-      } else if (activeChatId === chatId) {
-        const firstChatId = updatedChats.keys().next().value;
-        setActiveChatId(firstChatId);
-      }
-  
-      return updatedChats;
-    });
-  };
-  
-
   const getName = (activeChatId) => {
     const chats = sessionStorage.getItem('chats');
     if (chats) {
-      // Parsear el JSON guardado en sessionStorage
       const chatsArray = JSON.parse(chats);
-      // Buscar el chat con el ID proporcionado
       for (const [key, value] of chatsArray) {
         if (activeChatId != null && key === activeChatId) {
           return value.name;
@@ -77,11 +33,6 @@ function App() {
       return 'Selecciona un chat';
     }
     return 'Selecciona un chat';
-  };
-
-  const showHistory = () => {
-    const history = document.querySelector('.history');
-    history.classList.toggle('show');
   };
 
   return (
@@ -93,47 +44,8 @@ function App() {
           </svg>
         </div>
       : null}
-      <div className="history border-r border-gray-500 flex flex-col h-full">
-        <div className="cursor-pointer m-5 absolute transform scale-x-[-1]" onClick={() => showHistory()}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 32 32">
-            <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8h15M5 16h22M5 24h22M5 11l3-3l-3-3"/>
-          </svg>
-        </div>
-
-        {chats.size > 0 && (
-          <div className="overflow-y-auto flex-1 mt-16 text-center">
-            <h1>Selecciona un chat</h1>
-            {Array.from(chats).map(([key, chat]) => (
-              <div key={key} className="text-lg border m-4">
-                <button className="hover:bg-sky-700 w-1/2 border-r" onClick={() => selectChat(key)}>
-                  {chat.name}
-                </button>
-                <button className="hover:bg-red-700 w-1/2" onClick={() => deleteChat(key)}>
-                  Eliminar chat
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {chats.size > 0 && (
-          <div className="button_history p-4 border-t border-gray-500">
-            <form action="" className="flex flex-col gap-2">
-              <label htmlFor="">Introduce el nombre del chat</label>
-              <input
-                type="text"
-                placeholder="Nombre del chat"
-                className="text-neutral-950 rounded text-center"
-                ref={inputRef}
-                required
-              />
-              <button className="text-sm bg-gray-700 p-2 rounded-md  " onClick={initChat}>
-                Iniciar un nuevo chat con cohere
-              </button>
-            </form>
-          </div>
-        )}
-      </div>
+      
+      {chats.size > 0 ? <History /> : null}
 
       <div className="w-full flex justify-center">
         {chats.size === 0 ? (
@@ -148,14 +60,13 @@ function App() {
                 ref={inputRef}
                 required
               />
-              <button className="text-sm bg-gray-700 p-2 rounded-md" onClick={initChat}>
+              <button className="text-sm bg-gray-700 p-2 rounded-md" onClick={() => initChat(inputRef.current.value)}>
                 Empezar a chatear con cohere
               </button>
             </form>
           </div>
         ) : null}
 
-        {/* Si hay un chat activo o no es la primer carga y existen chats */}
         {chats.size > 0 ? (
           <Chat
             chatId={activeChatId}

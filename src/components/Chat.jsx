@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useMessages } from "../hooks/useMessages";
-import IconBotChat from "./IconBotChat";
 import IconUserChat from "./IconUserChat";
 
 // eslint-disable-next-line react/prop-types
@@ -19,7 +18,6 @@ function Chat({chatId, chatName}) {
         }
       }, [chatId]);
 
-    //Actualiza el sessionStorage
     useEffect(() => {
         sessionStorage.setItem(`chat_${chatId}_messages`, JSON.stringify(messagesArray));
     }, [messagesArray, chatId]);
@@ -44,7 +42,7 @@ function Chat({chatId, chatName}) {
     }
 
     return (
-        <div className="w-full h-screen flex flex-col">
+        <div className="w-full h-dvh flex flex-col">
             {chatName ? <div className="text-center mt-2"><h1>{chatName}</h1></div> : null}
             <div className="flex-1 overflow-y-auto p-4 ">
                 {messagesArray.map((message, index) => (
@@ -54,13 +52,13 @@ function Chat({chatId, chatName}) {
                     >
                         {!message.isUser ? (
                             <>
-                            <IconBotChat />
+                            <IconUserChat width="1.5em" height="1.5em" isUser={false}/>
                             <span className="ml-2">{message.text}</span>
                             </>
                         ) : (
                             <>
                             <span className="mr-2">{message.text}</span>
-                            <IconUserChat />
+                            <IconUserChat width="1.5em" height="1.5em" isUser={true}/>
                             </>
                         )}                        
                     </div>

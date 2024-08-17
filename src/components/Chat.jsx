@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { useMessages } from "../hooks/useMessages";
 import IconUserChat from "./IconUserChat";
+import FormChat from "./FormChat";
+import { useAppContext } from "../context/ChatsContext";
+import { CircleLoader } from "react-spinners";
 
 // eslint-disable-next-line react/prop-types
-function Chat({chatId, chatName}) {
+function Chat({chatId, chatName, activeChatId}) {
     const [valueInput, setValueInput] = useState('');
     const {messages, getRta} = useMessages(valueInput)
     const [messagesArray, setMessagesArray] = useState([])
+    const {showHistory} = useAppContext();
+    const [loading, setLoading] = useState(false);
 
     //Carga los mensajes al sessionStorage se crea el componente
     useEffect(() => {
@@ -25,6 +30,7 @@ function Chat({chatId, chatName}) {
     useEffect(() => {
         if (messages) {
             setMessagesArray(prevMenssages => [...prevMenssages, {text: messages, isUser: false}]);
+            setLoading(false);
         }
     }, [messages]);
 
@@ -37,6 +43,7 @@ function Chat({chatId, chatName}) {
         event.preventDefault();
         if(valueInput === '') return;
         setMessagesArray(prevMenssages => [...prevMenssages, {text: valueInput, isUser: true}]);
+        setLoading(true);
         getRta(valueInput)
         setValueInput('');
     }
@@ -63,22 +70,18 @@ function Chat({chatId, chatName}) {
                         )}                        
                     </div>
                 ))}
+
+                {loading && (
+                    <div className="flex justify-center my-4">
+                        <CircleLoader loading={loading} size={50} color={"#0299d0"}/>
+                    </div>
+                )}
             </div>
-            <form className="flex p-4 border-t border-gray-200" onSubmit={handleSubmit}>
-                <input
-                    value={valueInput}
-                    onChange={handleChange}
-                    type="text"
-                    placeholder="Mensaje a cohere"
-                    className="text-gray-900 w-full p-2 border border-gray-300 rounded-l"
-                />
-                <button
-                    type="submit"
-                    className="bg-blue-500 text-white px-4 py-2 rounded-r"
-                >
-                    Enviar
-                </button>
-            </form>
+            {activeChatId != null ?
+                <FormChat handleChange={handleChange} handleSubmit={handleSubmit} valueInput={valueInput} />
+                : showHistory()
+            }
+         
         </div>
     );
 }

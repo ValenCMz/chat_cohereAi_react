@@ -3,10 +3,11 @@ import { useEffect, useRef } from 'react';
 import Chat from './components/Chat';
 import { useAppContext } from './context/ChatsContext.jsx';
 import History from './components/History';
+import FormNewChat from './components/FormNewChat';
 
 function App() {
   const inputRef = useRef(null);
-  const { chats, activeChatId, initChat, showHistory, updateChats } = useAppContext();
+  const { chats, activeChatId, showHistory, updateChats } = useAppContext();
 
   useEffect(() => {
     if (chats.size === 0) {
@@ -21,7 +22,7 @@ function App() {
     sessionStorage.setItem('chats', JSON.stringify(Array.from(chats.entries())));
   }, [chats]);
 
-  const getName = (activeChatId) => {
+  const getName = (activeChatId = null) => {
     const chats = sessionStorage.getItem('chats');
     if (chats) {
       const chatsArray = JSON.parse(chats);
@@ -51,24 +52,12 @@ function App() {
         {chats.size === 0 ? (
           <div className="flex flex-col space-y-80 items-center">
             <h1 className="mt-6 text-xl">Bienvenido a cohere bot</h1>
-            <form action="" className="flex flex-col gap-2">
-              <label htmlFor="">Introduce el nombre del chat</label>
-              <input
-                type="text"
-                placeholder="Nombre del chat"
-                className="text-neutral-950 rounded text-center"
-                ref={inputRef}
-                required
-              />
-              <button className="text-sm bg-gray-700 p-2 rounded-md" onClick={() => initChat(inputRef.current.value)}>
-                Empezar a chatear con cohere
-              </button>
-            </form>
+            <FormNewChat inputRef={inputRef} textButton="Empezar a chatear con cohere"/>
           </div>
         ) : null}
-
-        {chats.size > 0 ? (
-          <Chat
+        {chats.size > 0? (
+          <Chat 
+            activeChatId={activeChatId}
             chatId={activeChatId}
             chatName={activeChatId && chats.size > 0 ? chats.get(activeChatId).name : getName(activeChatId)}
           />

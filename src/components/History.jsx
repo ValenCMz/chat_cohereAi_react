@@ -1,15 +1,10 @@
 import { useAppContext } from '../context/ChatsContext.jsx';
 import { useRef } from 'react';
+import FormNewChat from './FormNewChat.jsx';
 
 function History () {
     const inputRef = useRef(null);
-    const {chats, initChat, deleteChat, selectChat, showHistory} = useAppContext();
-
-    const handleInitChat = (event) => {
-      event.preventDefault(); 
-      const chatName = inputRef.current.value; 
-      initChat(chatName); 
-    };
+    const {chats, deleteChat, selectChat, showHistory} = useAppContext();
 
     return (
 
@@ -19,7 +14,6 @@ function History () {
             <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8h15M5 16h22M5 24h22M5 11l3-3l-3-3"/>
           </svg>
         </div>
-
         {chats.size > 0 && (
           <div className="overflow-y-auto flex-1 mt-16 text-center">
             <h1>Selecciona un chat</h1>
@@ -38,19 +32,7 @@ function History () {
 
         {chats.size > 0 && (
           <div className="button_history p-4 border-t border-gray-500">
-            <form action="" className="flex flex-col gap-2" onSubmit={handleInitChat}>
-              <label htmlFor="">Introduce el nombre del chat</label>
-              <input
-                type="text"
-                placeholder="Nombre del chat"
-                className="text-neutral-950 rounded text-center"
-                ref={inputRef}
-                required
-              />
-              <button className="text-sm bg-gray-700 p-2 rounded-md  " type='submit'>
-                Iniciar un nuevo chat con cohere
-              </button>
-            </form>
+            <FormNewChat inputRef={inputRef} textButton="Iniciar un nuevo chat con cohere"/>
           </div>
         )}
       </div> 

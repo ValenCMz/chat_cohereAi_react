@@ -49,7 +49,9 @@ export const AppProvider = ({ children }) => {
 
       const showHistory = () => {
         const history = document.querySelector('.history');
-        history.classList.toggle('show');
+        if(history){
+          history.classList.toggle('show');
+        }
       };
 
       const updateChats = (chats) => {
